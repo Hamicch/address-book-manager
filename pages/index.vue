@@ -3,7 +3,7 @@
 		<div class="grid grid-col-1 h-full">
 			<NuxtLink
 				to="/dashboard"
-				class="w-full overflow-hidden bg-red-60 row-span-1 flex items-center"
+				class="w-full overflow-hidden bg-red-60 row-span-1 flex items-center mb-10"
 			>
 				<Intouch />
 			</NuxtLink>
@@ -149,17 +149,11 @@
 			</div>
 
 			<!-- Contact Listing  -->
-			<!-- <div
-				v-if="this.$fetchState.pending"
-				class="text-center loader mb-5"
-			>
-				Fetching contacts...
-			</div> -->
-
 			<div class="w-full row-span-6 grid grid-cols-4 gap-6 mt-6">
-				<div class="rounded col-span-4">
+				<div class="rounded col-span-3">
 					<div
-						v-for="contact in contacts"
+						@click="selectedContact(contact)"
+						v-for="contact in filteredContacts"
 						:key="contact._id"
 						class="transition ease-in-out delay-80 duration-300 flex items-center border rounded-xl cursor-pointer p-2 mb-4 hover:drop-shadow-xl hover:bg-white hover:border-white"
 					>
@@ -169,22 +163,21 @@
 							alt="Avatar"
 						/>
 						<div class="text-sm w-[90%] flex justify-around">
-							<span class="text-gray-800 font-semibold">
+							<span
+								class="text-gray-800 font-semibold pl-2 w-[150px]"
+							>
 								{{ contact.name }}
 							</span>
-							<span class="text-gray-800 font-semibold">
+
+							<span class="text-gray-500 leading-none pl-6">
 								{{ contact.phone }}
 							</span>
-							<span class="text-gray-500 leading-none">
-								{{ contact.email }}
-							</span>
-							<span class="text-gray-500 leading-none truncate">
+							<span
+								class="text-gray-500 leading-none truncate ml-10 w-[400px]"
+							>
 								{{ contact.address }}
 							</span>
 						</div>
-						<span class="w-20 mr-[1rem] cursor-pointer">
-							<MoreIcon @click="showModal = true" />
-						</span>
 					</div>
 					<!-- <h3
 						v-else
@@ -195,50 +188,65 @@
 				</div>
 
 				<!-- View Contact  -->
-				<!-- <div
-					class="border overflow-hidden rounded-md col-span-1 py-1 h-[24rem] flex flex-col space-x-2 items-center"
-				>
-					<img
-						class="w-14 h-14 rounded-lg mt-10"
-						src="../assets/img/avatar.png"
-						alt="Avatar"
-					/>
-					<span class="text-gray-800 font-semibold mt-8">
-					</span>
-					<div class="border-t w-full flex mt-6">
-						<span
-							class="text-gray-500 flex items-center font-medium text-sm pl-11 p-2"
-						>
+				<div>
+					<div
+						class="border overflow-hidden rounded-md col-span-1 py-1 h-[25rem] flex flex-col space-x-2 items-center"
+					>
+						<img
+							class="w-14 h-14 rounded-lg mt-10"
+							src="../assets/img/avatar.png"
+							alt="Avatar"
+						/>
+						<span class="text-gray-800 font-semibold mt-8">
+							{{ selectedId.name }}
 						</span>
-					</div>
-					<div class="border-t w-full flex">
-						<span
-							class="text-gray-500 flex items-center font-regular text-sm p-2"
+						<div class="border-t w-full flex mt-6">
+							<span
+								class="text-gray-500 flex items-center font-medium text-sm pl-11 p-2"
+							>
+								{{ selectedId.phone }}
+							</span>
+						</div>
+						<div class="border-t w-full flex">
+							<span
+								class="text-gray-500 flex items-center font-regular text-sm p-2"
+							>
+								{{ selectedId.email }}
+							</span>
+						</div>
+						<div class="border-t w-full flex">
+							<span
+								class="text-gray-500 flex items-center font-regular text-center text-sm p-2"
+							>
+								{{ selectedId.address }}
+							</span>
+						</div>
+						<div class="border-t w-full flex">
+							<span
+								class="text-gray-500 flex items-center font-regular text-center text-sm p-2"
+							>
+							</span>
+						</div>
+						<div
+							class="w-full flex justify-center flex-row space-x-2"
 						>
-						</span>
+							<button
+								@click="onLogOut"
+								type="button"
+								class="bg-black text-sm mb-10 hover:bg-[#000000c2] text-white font-medium py-[8px] px-[12px] rounded-md flex"
+							>
+								Log out
+							</button>
+							<button
+								@click="onDeleteContact"
+								type="button"
+								class="bg-[#ff3636f5] text-sm mb-10 hover:bg-[#ff3636cc] text-white font-medium py-[8px] px-[12px] rounded-md flex"
+							>
+								Delete
+							</button>
+						</div>
 					</div>
-					<div class="border-t w-full flex">
-						<span
-							class="text-gray-500 flex items-center font-regular text-center text-sm p-2"
-						>
-						</span>
-					</div>
-					<div class="border-t w-full flex">
-						<span
-							class="text-gray-500 flex items-center font-regular text-center text-sm p-2"
-						>
-						</span>
-					</div>
-					<div class="w-full flex justify-center">
-						<button
-							@click="onLogOut"
-							type="button"
-							class="bg-[#ff3636f5] text-sm hover:bg-[#ff3636cc] text-white font-medium py-[8px] px-[12px] rounded-md flex"
-						>
-							Log out
-						</button>
-					</div>
-				</div> -->
+				</div>
 			</div>
 
 			<!-- Spinner -->
@@ -265,7 +273,7 @@ export default {
 			more: false,
 			searchQuery: '',
 			contacts: [],
-			selectedContact: '',
+			selectedId: '',
 			full_name: '',
 			phone: '',
 			email: '',
@@ -274,33 +282,18 @@ export default {
 	},
 
 	computed: {
-		// filteredContacts() {
-		// 	return this.contacts.filter((contact) => {
-		// 		return contact.full_name
-		// 			.toLowerCase()
-		// 			.includes(this.searchQuery.toLowerCase());
-		// 	});
-		// },
-		// query() {
-		// 	if (this.searchQuery) {
-		// 		return this.contacts.filter((contact) => {
-		// 			return this.searchQuery
-		// 				.toLowerCase()
-		// 				.split(' ')
-		// 				.every(
-		// 					(v) =>
-		// 						contact &&
-		// 						contact.User &&
-		// 						contact.User.full_name &&
-		// 						contact.User.email &&
-		// 						contact.User.phone &&
-		// 						contact.User.address.toLowerCase().includes(v)
-		// 				);
-		// 		});
-		// 	} else {
-		// 		return this.contacts;
-		// 	}
-		// },
+		filteredContacts() {
+			return this.contacts.filter((contact) => {
+				return (
+					contact.name
+						.toLowerCase()
+						.includes(this.searchQuery.toLowerCase()) ||
+					contact.address
+						.toLowerCase()
+						.includes(this.searchQuery.toLowerCase())
+				);
+			});
+		},
 	},
 
 	mounted() {
@@ -308,9 +301,9 @@ export default {
 	},
 
 	methods: {
-		viewContact(contact) {
-			this.selectedContact = contact;
-			console.log('CLICKED:::', contact);
+		selectedContact(contact) {
+			this.selectedId = contact;
+			console.log('SELECTED:::', this.selectedId);
 		},
 		async getContacts() {
 			try {
@@ -320,7 +313,7 @@ export default {
 				console.log('Get Contact::::', response);
 				if (response.status == true) {
 					this.$toast.success(response.message);
-					this.contacts = response;
+					this.contacts = response?.contacts;
 					console.log('Contacts:::', this.contacts);
 				}
 			} catch (err) {
@@ -354,17 +347,24 @@ export default {
 			}
 		},
 
+		async onDeleteContact() {
+			try {
+				console.log('DELETE CONTACT::::', this.selectedId._id);
+				let response = await this.$axios.$delete(
+					`http://localhost:3000/api/contacts/${this.selectedId._id}`
+				);
+				console.log('Selected Contact::::', response);
+				if (response.status == true) {
+					this.getContacts();
+				}
+			} catch (err) {
+				console.log('SELECTED CONTACTS::::', err);
+			}
+		},
+
 		async onLogOut() {
 			await this.$auth.logout();
 			this.$router.push('/signin');
-		},
-
-		openModal() {
-			this.showModal = true;
-		},
-
-		closeModal() {
-			this.showModal = false;
 		},
 	},
 };
